@@ -74,4 +74,31 @@ class api {
 
 		return true;
 	}
+
+	static function a2fa_for_user_enabled($userid) {
+		global $DB;
+
+		$user = $DB->get_record('user', array('id'=>$userid));
+
+		return !!\block_exa2fa\user_setting::get($user)->is_a2fa_active();
+	}
+
+	static function check_a2fa_token($userid, $token) {
+		global $DB;
+
+		$user = $DB->get_record('user', array('id'=>$userid));
+
+		if (!$data = \block_exa2fa\user_setting::get($user)->is_a2fa_active()) {
+			// no secret configured -> a2fa check not needed
+			return true;
+		}
+
+		$ga = new \PHPGangsta_GoogleAuthenticator();
+		if (!empty($token) && $ga->verifyCode($data->secret, $token, 2)) {
+			// login ok
+			return true;
+		}
+
+		return false;
+	}
 }
