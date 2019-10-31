@@ -22,5 +22,5 @@ defined('MOODLE_INTERNAL') || die();
 $plugin->version   = 2017080800;		// The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2014050800;		// Requires this Moodle version
 $plugin->component = 'block_exa2fa';	   // Full name of the plugin (used for diagnostics)
-$plugin->release = '4.6.1';
+$plugin->release = '4.6.4';
 $plugin->maturity = MATURITY_STABLE;
