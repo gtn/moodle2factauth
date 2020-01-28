@@ -68,7 +68,7 @@ if (isguestuser($user)) {
 $DB->delete_records('user_password_resets', array('id' => $user->tokenid));
 
 // disable a2fa
-if ($a2faSettings = \block_exa2fa\user_setting::get($user)) {
+if ($a2faSettings = \block_exa2fa_user_setting::get($user)) {
 	$a2faSettings->deactivate();
 }
 

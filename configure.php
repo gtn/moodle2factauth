@@ -29,14 +29,14 @@ require_login($courseid);
 
 if (!$userid || $userid == $USER->id) {
 	$userid = $USER->id;
-} elseif (($action == 'deactivate') && \block_exa2fa\teacher_can_deactivate_student($COURSE->id, $userid)) {
+} elseif (($action == 'deactivate') && block_exa2fa_teacher_can_deactivate_student($COURSE->id, $userid)) {
 	// teacher can only deactivate
 } else {
 	print_error('no permissions');
 }
 
 if ($action == 'deactivate') {
-	\block_exa2fa\user_setting::get($USER->id)->deactivate();
+	\block_exa2fa_user_setting::get($USER->id)->deactivate();
 	redirect($returnurl);
 } elseif ($action == 'activate' || $action == 'generate') {
 
@@ -45,16 +45,14 @@ if ($action == 'deactivate') {
 
 	$error = '';
 	if ($secret && $token) {
-		if (\block_exa2fa\user_setting::get($USER->id)->activate($secret, $token)) {
+		if (\block_exa2fa_user_setting::get($USER->id)->activate($secret, $token, $error)) {
 			// ok
 			redirect($returnurl);
 		}
-
-		$error = block_exa2fa_trans(['de:Der eingegebene Code ist falsch', 'en:Sorry, this code is wrong']);
 	}
 
 	if (!$secret) {
-		$secret = \block_exa2fa\generate_secret();
+		$secret = block_exa2fa_generate_secret();
 	}
 
 	// Default formatting.

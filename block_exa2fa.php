@@ -30,10 +30,14 @@ class block_exa2fa extends block_base {
 		return array('all' => true);
 	}
 
+	function has_config() {
+		return true;
+	}
+
 	function get_content() {
 		global $USER;
 		
-		if (!$a2faSettings = \block_exa2fa\user_setting::get($USER)) {
+		if (!$a2faSettings = \block_exa2fa_user_setting::get($USER)) {
 			return;
 		}
 		

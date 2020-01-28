@@ -17,10 +17,29 @@
 //
 // This copyright notice MUST APPEAR in all copies of the script!
 
-defined('MOODLE_INTERNAL') || die();
+require_once __DIR__.'/../inc.php';
 
-$plugin->version   = 2020012701;		// The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2014050800;		// Requires this Moodle version
-$plugin->component = 'block_exa2fa';	   // Full name of the plugin (used for diagnostics)
-$plugin->release = '4.6.4';
-$plugin->maturity = MATURITY_STABLE;
+
+
+function xmldb_block_exa2fa_upgrade($oldversion) {
+	global $DB, $CFG;
+	$dbman = $DB->get_manager();
+	$return_result = true;
+
+    if ($oldversion < 2020012700) {
+
+        // Define field lasttokens to be added to block_exa2fauser.
+        $table = new xmldb_table('block_exa2fauser');
+        $field = new xmldb_field('lasttokens', XMLDB_TYPE_TEXT, null, null, null, null, null, 'secret');
+
+        // Conditionally launch add field lasttokens.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Exa2fa savepoint reached.
+        upgrade_block_savepoint(true, 2020012700, 'exa2fa');
+    }
+
+	return $return_result;
+}

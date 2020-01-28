@@ -25,6 +25,8 @@ if (isloggedin() and !isguestuser()) {
 }
 
 $CFG->alternateloginurl = null;
+// needs to be disabled, else ajax login won't work
+$CFG->disablelogintoken = true;
 
 if (!empty($SESSION->wantsurl) && preg_match('!/login/!', $SESSION->wantsurl)) {
 	$SESSION->wantsurl = null;

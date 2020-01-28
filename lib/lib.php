@@ -17,8 +17,6 @@
 //
 // This copyright notice MUST APPEAR in all copies of the script!
 
-namespace block_exa2fa;
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once __DIR__.'/common.php';
@@ -26,19 +24,19 @@ require_once __DIR__.'/GoogleAuthenticator.php';
 
 use block_exa2fa\globals as g;
 
-class user_setting {
-	
+class block_exa2fa_user_setting {
+
 	var $user;
 	var $exa2fauser;
-	
+
 	/**
-	 * @return \block_exa2fa\user_setting
+	 * @return \block_exa2fa_user_setting
 	 */
 	static function get($userid) {
 		// always load current user from database
 		// because $USER caches the user settings
 		$user = g::$DB->get_record('user', ['id' => is_object($userid) ? $userid->id : $userid]);
-		
+
 		if (!$user) {
 			return null;
 		} else {
@@ -46,20 +44,20 @@ class user_setting {
 			return new $class($user);
 		}
 	}
-	
+
 	function __construct($user) {
 		$this->user = $user;
-	
+
 		$this->exa2fauser = g::$DB->get_record('block_exa2fauser', ['userid' => $this->user->id]);
-		}
-	
+	}
+
 	function getSettingOutput() {
 		if (!$this->can_a2fa()) {
 			return null;
 		}
-		
+
 		$url = new \moodle_url('/blocks/exa2fa/configure.php', ['action'=>null, 'returnurl' => (new \moodle_url(g::$PAGE->url))->out_as_local_url(false)]);
-		
+
 		if ($data = $this->is_a2fa_active()) {
 			$output  = '<div style="text-align: center;">'.block_exa2fa_trans(['de:A2fa ist aktiv', 'en:A2fa is active']).'<br />';
 			$output .= \html_writer::empty_tag('input', ['type'=>'button',
@@ -81,15 +79,15 @@ class user_setting {
 		return $output;
 
 	}
-	
+
 	function getTeacherOutput($courseid) {
 		if (!$this->can_a2fa()) {
 			return null;
 		}
-		
+
 		if ($this->is_a2fa_active()) {
 			$url = new \moodle_url('/blocks/exa2fa/configure.php', ['action'=>null, 'returnurl' => (new \moodle_url(g::$PAGE->url))->out_as_local_url(false), 'userid' => $this->user->id, 'courseid'=>$courseid]);
-			
+
 			$output  = '<div style="text-align: center;">';
 			$output .= \html_writer::empty_tag('input', ['type'=>'button',
 							'value'=>block_exa2fa_trans(['de:A2fa deaktivieren', 'en:Disable A2fa']),
@@ -98,10 +96,10 @@ class user_setting {
 			return $output;
 		}
 	}
-	
+
 	function can_a2fa() {
 		return $this->user->id && !empty($this->user->auth) && /* guest user has no auth set */
-		(in_array($this->user->auth, get_enabled_plugins_with_a2fa_available()) /* is standard login */
+		(in_array($this->user->auth, block_exa2fa_get_enabled_plugins_with_a2fa_available()) /* is standard login */
 				|| preg_match('!^a2fa_!', $this->user->auth)); /* is a2fa login */
 	}
 
@@ -113,13 +111,60 @@ class user_setting {
 		}
 	}
 
-	function activate($secret, $token) {
+	function verifyCodeAndAllowOnlyOnce($secret, $token, &$error) {
+		if (empty($token)) {
+			$error = block_exa2fa_trans(['de:Bitte gültigen Code eingeben', 'en:Please provide the correct A2fa Code']);
+			return false;
+		}
+
+		$ga = new \PHPGangsta_GoogleAuthenticator();
+		if (!$ga->verifyCode($secret, $token, 1)) {
+			$error = block_exa2fa_trans(['de:Bitte gültigen Code eingeben', 'en:Please provide the correct A2fa Code']);
+
+			return false;
+		}
+
+		$data = [];
+
+		// check already used:
+		if ($this->exa2fauser) {
+			if ($this->exa2fauser->lasttokens) {
+				$lasttokens = explode(',', $this->exa2fauser->lasttokens);
+
+				// check if already used
+				if (in_array($token, $lasttokens)) {
+					$error = block_exa2fa_trans(['de:Der eingegebene Code wurde schon einmal verwendet', 'en:Sorry, this code was already used']);
+					return false;
+				}
+			} else {
+				$lasttokens = [];
+			}
+
+			// add new code
+			$lasttokens[] = $token;
+
+			// only save last 5 codes (current code + 2 before + 2 after)
+			$lasttokens = array_slice($lasttokens, -5);
+
+			$data['lasttokens'] = join(',', $lasttokens);
+		} else {
+			// insert empty row
+			$data['a2faactive'] = 0;
+			$data['lasttokens'] = $token;
+		}
+
+		// save last used tokens
+		g::$DB->insert_or_update_record('block_exa2fauser', $data, ['userid' => $this->user->id]);
+
+		return true;
+	}
+
+	function activate($secret, $token, &$error) {
 		if (!$this->can_a2fa()) {
 			print_error('a2fa not allowed');
 		}
 
-		$ga = new \PHPGangsta_GoogleAuthenticator();
-		if (!$ga->verifyCode($secret, $token, 2)) {
+		if (!$this->verifyCodeAndAllowOnlyOnce($secret, $token, $error)) {
 			return false;
 		}
 
@@ -128,8 +173,8 @@ class user_setting {
 			'secret' => $secret
 		];
 
-		\block_exa2fa\globals::$DB->insert_or_update_record('block_exa2fauser', $data, ['userid' => $this->user->id]);
-		
+		g::$DB->insert_or_update_record('block_exa2fauser', $data, ['userid' => $this->user->id]);
+
 		g::$DB->update_record('user', [
 			'id' => $this->user->id,
 			'auth' => 'a2fa_'.preg_replace('!^a2fa_!', '', $this->user->auth)
@@ -137,12 +182,12 @@ class user_setting {
 
 		return true;
 	}
-	
+
 	function deactivate() {
-		\block_exa2fa\globals::$DB->update_record('block_exa2fauser', [
+		g::$DB->update_record('block_exa2fauser', [
 			'a2faactive' => 0
 		], ['userid' => $this->user->id]);
-	
+
 		g::$DB->update_record('user', [
 			'id' => $this->user->id,
 			'auth' => preg_replace('!^a2fa_!', '', $this->user->auth)
@@ -150,7 +195,7 @@ class user_setting {
 	}
 }
 
-function generate_secret() {
+function block_exa2fa_generate_secret() {
 	$ga = new \PHPGangsta_GoogleAuthenticator();
 	do{
 		$secret = $ga->createSecret();
@@ -160,7 +205,7 @@ function generate_secret() {
 	return $secret;
 }
 
-function get_enabled_plugins_with_a2fa_available() {
+function block_exa2fa_get_enabled_plugins_with_a2fa_available() {
 	$enabledPlugins = \core_plugin_manager::instance()->get_enabled_plugins('auth');
 	$a2faPlugins = [];
 	
@@ -174,7 +219,7 @@ function get_enabled_plugins_with_a2fa_available() {
 	return $a2faPlugins;
 }
 
-function teacher_can_deactivate_student($courseid, $studentid) {
+function block_exa2fa_teacher_can_deactivate_student($courseid, $studentid) {
 	global $USER;
 	$teacher = $USER;
 	
@@ -182,4 +227,10 @@ function teacher_can_deactivate_student($courseid, $studentid) {
 	
 	return has_capability('enrol/manual:enrol', $context, $teacher) // is teacher
 		&& is_enrolled($context, $studentid); // student is enrolled
+}
+
+function block_exa2fa_get_renderer() {
+	global $PAGE;
+
+	return $PAGE->get_renderer('block_exa2fa');
 }

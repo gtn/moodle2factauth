@@ -1,9 +1,9 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Exabis Competence Grid
 //
 // (c) 2016 GTN - Global Training Network GmbH <office@gtn-solutions.com>
 //
-// Moodle is free software: you can redistribute it and/or modify
+// Exabis Competence Grid is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
@@ -17,10 +17,10 @@
 //
 // This copyright notice MUST APPEAR in all copies of the script!
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2020012701;		// The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2014050800;		// Requires this Moodle version
-$plugin->component = 'block_exa2fa';	   // Full name of the plugin (used for diagnostics)
-$plugin->release = '4.6.4';
-$plugin->maturity = MATURITY_STABLE;
+use block_exacomp\globals as g;
+
+class block_exa2fa_renderer extends plugin_renderer_base {
+
+}

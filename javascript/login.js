@@ -53,23 +53,6 @@ $(function(){
 	// add submit button also to token form
 	$form.find(':submit').clone().appendTo($tokenForm);
 
-	function login() {
-		// Send the data using post
-		return $.ajax({
-			dataType: "json",
-			url: $form.attr('action'),
-			dataType: 'json',
-			method: 'post',
-			data: {
-				ajax: true,
-				username: $form.find('input[name=username]').val(),
-				password: $form.find('input[name=password]').val(),
-				token: $form.find('input[name=token]').val(),
-				rememberusername: $form.find('input[name=rememberusername]:checked').val(),
-			}
-		});
-	}
-	
 	function error(errorText) {
 		$('.loginerrors').remove();
 		$form.before('<div class="loginerrors"><div class="alert alert-danger" role="alert"><span class="error">'+errorText+'</span></div></div>');
@@ -81,8 +64,25 @@ $(function(){
 
 		// remove old errors
 		$('.loginerrors').remove();
+
+		var data = {
+			ajax: true,
+		};
+		$.each($form.serializeArray(), function(_, input) {
+			data[input.name] = input.value;
+		});
+
+		// disable form after serializeArray(), else this won't work
 		$('input').attr('disabled', 'disabled');
-		login().done(function(data, ret, xhr){
+
+		// Send the data using post
+		$.ajax({
+			dataType: "json",
+			url: $form.attr('action'),
+			dataType: 'json',
+			method: 'post',
+			data: data
+		}).done(function(data, ret, xhr){
 			// for testing
 			/*
 			window.content = content;
@@ -90,7 +90,7 @@ $(function(){
 			window.ret = ret;
 			return;
 			*/
-			
+
 			if (data['a2fa-error']) {
 				error(data['a2fa-error']);
 
