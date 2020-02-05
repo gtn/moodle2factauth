@@ -25,8 +25,8 @@ $(function(){
 
 	$form.attr('action', M.cfg.wwwroot+'/blocks/exa2fa/login/');
 
-	var strA2faPassword = $('html').attr('lang') == 'de' ? 'Authenticator Einmalpasswort' : 'A2fa Code';
-	var strForgotPassword = $('html').attr('lang') == 'de' ? 'A2fa Code vergessen?' : 'Forgot your A2fa Code?';
+	var strA2faPassword = $('html').attr('lang') == 'de' ? 'Authenticator Einmalpasswort' : '2FA Code';
+	var strForgotPassword = $('html').attr('lang') == 'de' ? '2FA Code vergessen?' : 'Forgot your 2FA Code?';
 
 	// add a2fa to form
 	var $innerWrap = $form.wrapInner('<div/>').children();

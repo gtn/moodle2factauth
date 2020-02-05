@@ -44,6 +44,6 @@ function block_exa2fa_myprofile_navigation($tree, $user, $iscurrentuser, $course
 		return;
 	}
 	
-	$node = new core_user\output\myprofile\node('contact', 'a2fa_settings', block_exa2fa_trans(['de:A2fa Einstellungen', 'en:A2fa Settings']), null, null, $content);
+	$node = new core_user\output\myprofile\node('contact', 'a2fa_settings', block_exa2fa_trans(['de:2FA Einstellungen', 'en:2FA Settings']), null, null, $content);
 	$tree->add_node($node);
 }

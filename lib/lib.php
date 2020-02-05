@@ -58,20 +58,22 @@ class block_exa2fa_user_setting {
 
 		$url = new \moodle_url('/blocks/exa2fa/configure.php', ['action'=>null, 'returnurl' => (new \moodle_url(g::$PAGE->url))->out_as_local_url(false)]);
 
-		if ($data = $this->is_a2fa_active()) {
-			$output  = '<div style="text-align: center;">'.block_exa2fa_trans(['de:A2fa ist aktiv', 'en:A2fa is active']).'<br />';
+		if ($this->is_a2fa_configured()) {
+			$data = $this->get_a2fauser();
+
+			$output  = '<div style="text-align: center;">'.block_exa2fa_trans(['de:2FA ist aktiv', 'en:2FA is active']).'<br />';
+			//$output .= \html_writer::empty_tag('input', ['type'=>'button',
+			//				'value'=>block_exa2fa_trans(['de:Neuen Code generieren', 'en:Generate a new Code']),
+			//				'onclick'=>'document.location.href='.json_encode($url->out(false, ['action' => 'generate']))]);
+			//$output .= '&nbsp;&nbsp;';
 			$output .= \html_writer::empty_tag('input', ['type'=>'button',
-							'value'=>block_exa2fa_trans(['de:Neuen Code generieren', 'en:Generate a new Code']),
-							'onclick'=>'document.location.href='.json_encode($url->out(false, ['action' => 'generate']))]);
-			$output .= '&nbsp;&nbsp;';
-			$output .= \html_writer::empty_tag('input', ['type'=>'button',
-							'value'=>block_exa2fa_trans(['de:A2fa deaktivieren', 'en:Disable A2fa']),
+							'value'=>block_exa2fa_trans(['de:2FA deaktivieren', 'en:Disable 2FA']),
 							'onclick'=>'document.location.href='.json_encode($url->out(false, ['action' => 'deactivate']))]);
 			$output .= '</div>';
 		} else {
-			$output  = '<div style="text-align: center;">'.block_exa2fa_trans(['de:Hier kannst du A2fa aktivieren um Moodle noch sicherer zu machen.', 'en:Activate A2fa to make your Moodle login more secure.']).'<br /><br />';
+			$output  = '<div style="text-align: center;">'.block_exa2fa_trans(['de:Hier kannst du 2FA aktivieren um Moodle noch sicherer zu machen.', 'en:Activate 2FA to make your Moodle login more secure.']).'<br /><br />';
 			$output .= \html_writer::empty_tag('input', ['type'=>'button',
-							'value'=>block_exa2fa_trans(['de:A2fa aktivieren', 'en:Enable A2fa']),
+							'value'=>block_exa2fa_trans(['de:2FA aktivieren', 'en:Enable 2FA']),
 							'onclick'=>'document.location.href='.json_encode($url->out(false, ['action' => 'activate']))]);
 			$output .= '</div>';
 		}
@@ -85,12 +87,12 @@ class block_exa2fa_user_setting {
 			return null;
 		}
 
-		if ($this->is_a2fa_active()) {
+		if ($this->is_a2fa_configured()) {
 			$url = new \moodle_url('/blocks/exa2fa/configure.php', ['action'=>null, 'returnurl' => (new \moodle_url(g::$PAGE->url))->out_as_local_url(false), 'userid' => $this->user->id, 'courseid'=>$courseid]);
 
 			$output  = '<div style="text-align: center;">';
 			$output .= \html_writer::empty_tag('input', ['type'=>'button',
-							'value'=>block_exa2fa_trans(['de:A2fa deaktivieren', 'en:Disable A2fa']),
+							'value'=>block_exa2fa_trans(['de:2FA deaktivieren', 'en:Disable 2FA']),
 							'onclick'=>'document.location.href='.json_encode($url->out(false, ['action' => 'deactivate']))]);
 			$output .= '</div>';
 			return $output;
@@ -103,23 +105,27 @@ class block_exa2fa_user_setting {
 				|| preg_match('!^a2fa_!', $this->user->auth)); /* is a2fa login */
 	}
 
-	function is_a2fa_active() {
-		if (preg_match('!^a2fa_!', $this->user->auth) && $this->exa2fauser && $this->exa2fauser->a2faactive && $this->exa2fauser->secret) {
-			return $this->exa2fauser;
-		} else {
-			return null;
-		}
+	function is_a2fa_configured() {
+		return (preg_match('!^a2fa_!', $this->user->auth) && $this->exa2fauser && $this->exa2fauser->a2faactive && $this->exa2fauser->secret);
+	}
+
+	function is_a2fa_active_for($type) {
+		return $this->is_a2fa_configured() && in_array($type, explode(',', $this->exa2fauser->active_for));
+	}
+
+	function get_a2fauser() {
+		return $this->exa2fauser;
 	}
 
 	function verifyCodeAndAllowOnlyOnce($secret, $token, &$error) {
 		if (empty($token)) {
-			$error = block_exa2fa_trans(['de:Bitte gültigen Code eingeben', 'en:Please provide the correct A2fa Code']);
+			$error = block_exa2fa_trans(['de:Bitte gültigen Code eingeben', 'en:Please provide the correct 2FA Code']);
 			return false;
 		}
 
 		$ga = new \PHPGangsta_GoogleAuthenticator();
 		if (!$ga->verifyCode($secret, $token, 1)) {
-			$error = block_exa2fa_trans(['de:Bitte gültigen Code eingeben', 'en:Please provide the correct A2fa Code']);
+			$error = block_exa2fa_trans(['de:Bitte gültigen Code eingeben', 'en:Please provide the correct 2FA Code']);
 
 			return false;
 		}
@@ -161,16 +167,20 @@ class block_exa2fa_user_setting {
 
 	function activate($secret, $token, &$error) {
 		if (!$this->can_a2fa()) {
-			print_error('a2fa not allowed');
+			print_error('2FA not allowed');
 		}
 
 		if (!$this->verifyCodeAndAllowOnlyOnce($secret, $token, $error)) {
 			return false;
 		}
 
+		$active_for = block_exa2fa\param::optional_array('active_for', PARAM_TEXT);
+		$active_for = join(',', $active_for);
+
 		$data = [
 			'a2faactive' => 1,
-			'secret' => $secret
+			'secret' => $secret,
+			'active_for' => $active_for,
 		];
 
 		g::$DB->insert_or_update_record('block_exa2fauser', $data, ['userid' => $this->user->id]);
@@ -233,4 +243,70 @@ function block_exa2fa_get_renderer() {
 	global $PAGE;
 
 	return $PAGE->get_renderer('block_exa2fa');
+}
+
+/**
+ * copied from login/lib.php
+ * @param $user
+ * @param $resetrecord
+ * @return bool
+ * @throws coding_exception
+ * @throws moodle_exception
+ */
+function block_exa2fa_send_password_change_confirmation_email($user, $resetrecord) {
+    global $CFG;
+
+    $site = get_site();
+    $supportuser = core_user::get_support_user();
+    $pwresetmins = isset($CFG->pwresettime) ? floor($CFG->pwresettime / MINSECS) : 30;
+
+    $data = new stdClass();
+    $data->firstname = $user->firstname;
+    $data->lastname  = $user->lastname;
+    $data->username  = $user->username;
+    $data->sitename  = format_string($site->fullname);
+    $data->link      = $CFG->httpswwwroot .'/blocks/exa2fa/reset_a2fa.php?token='. $resetrecord->token;
+    $data->admin     = generate_email_signoff();
+    $data->resetminutes = $pwresetmins;
+
+    $message = block_exa2fa_trans([
+    	'de:Guten Tag {$a->firstname},
+
+jemand (wahrscheinlich Sie) hat bei \'{$a->sitename}\' das Zurücksetzen des 2FA Codes für das Nutzerkonto \'{$a->username}\' angefordert.
+
+Um diese Anforderung zu bestätigen und den 2FA Code zu deaktivieren, gehen Sie bitte auf folgende Webseite:
+
+{$a->link}
+
+Hinweis:
+Dieser Link wird {$a->resetminutes} Minuten nach der Anforderung ungültig. Meistens erscheint die Webadresse als blauer Link, auf den Sie einfach klicken können. Falls dies nicht funktioniert, kopieren Sie die Webadresse vollständig in die Adresszeile Ihres Browsers. Falls Sie das Zurücksetzen nicht selber ausgelöst haben, hat vermutlich jemand anders Ihren Anmeldenamen oder Ihrer E-Mail-Adresse eingegeben. Dies ist kein Grund zur Beunruhigung. Ignorieren Sie die Nachricht dann bitte.
+
+Bei Problemen wenden Sie sich bitte an die Administrator/innen der Website.
+
+Viel Erfolg!
+
+{$a->admin}',
+		'en:Dear {$a->firstname},
+
+you have requested to reset your 2FA Code of \'{$a->username}\' on \'{$a->sitename}\'.
+
+Please click the link below to disable your 2FA Code:
+
+{$a->link}
+
+Note:
+The Link is only active for {$a->resetminutes} minutes.
+
+If you experience any Problems, please contact your Moodle Support.
+
+Sincerely,
+{$a->admin}'
+	], $data);
+    $subject = block_exa2fa_trans([
+    	'de:{$a}: 2FA Code zurücksetzen',
+		'en:{$a}: Reset 2FA Code'
+	], format_string($site->fullname));
+
+    // Directly email rather than using the messaging system to ensure its not routed to a popup or jabber.
+    return email_to_user($user, $supportuser, $subject, $message);
 }

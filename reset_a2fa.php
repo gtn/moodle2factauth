@@ -77,8 +77,8 @@ unset($SESSION->wantsurl);
 echo $OUTPUT->header();
 
 $msg = block_exa2fa_trans([
-	'de:A2fa ist nun deaktiviert. Bitte log dich neu ein.',
-	'en:A2fa is now disabled. Please Login again.'
+	'de:2FA ist nun deaktiviert. Bitte log dich neu ein.',
+	'en:2FA is now disabled. Please Login again.'
 ]);
 notice('<div style="text-align: center; padding: 30px;">'.$msg.'</div>', $loginurl);
 

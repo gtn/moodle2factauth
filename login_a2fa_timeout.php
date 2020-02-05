@@ -26,23 +26,42 @@ $returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
 
 require_login($courseid, true);
 
+$url = '/blocks/exa2fa/login_a2fa_timeout.php';
+$PAGE->set_url($url);
+$PAGE->set_context(\context_system::instance());
+
+$output = block_exa2fa_get_renderer();
+
 $error = '';
+
+if ($action == 'reset_a2fa') {
+	require_once $CFG->dirroot.'/login/lib.php';
+
+	$resetrecord = core_login_generate_password_reset($USER);
+	block_exa2fa_send_password_change_confirmation_email($USER, $resetrecord);
+
+	echo $output->header();
+
+	$msg = block_exa2fa_trans([
+		'de:Die Anleitung zum Zurücksetzen des 2FA Codes wurde dir per E-Mail gesendet.',
+		'en:We have sent you an email with the instructions on how to reset your 2FA Code.'
+	]);
+	notice('<div style="text-align: center; padding: 30px;">'.$msg.'</div>', $CFG->wwwroot.'/index.php');
+
+	echo $output->footer();
+	exit;
+}
 
 if ($action == 'login') {
 	if (\block_exa2fa\api::check_a2fa_token($USER->id, $token, $error)) {
-		$SESSION->last_a2fa_time = time();
+		$_SESSION['last_a2fa_time'] = time();
 
 		redirect(new moodle_url($returnurl));
 		exit;
 	}
 }
 
-$url = '/blocks/exa2fa/login_a2fa_timeout.php';
-$PAGE->set_url($url);
-$PAGE->set_context(\context_system::instance());
-
-$output = block_exa2fa_get_renderer();
-echo $output->header([], ['is_login_a2fa_timeout_page' => true]);
+echo $output->header();
 
 ?>
 	<?php
@@ -52,11 +71,24 @@ echo $output->header([], ['is_login_a2fa_timeout_page' => true]);
 	?>
 
 	<form method="post" style="text-align: center;">
-	Um diesen Bereich betreten zu können ist die erneute Eingabe Ihres A2fa Codes notwendig:<br/>
+	<?php
+		echo block_exa2fa_trans([
+			'de:Um diesen Bereich betreten zu können ist die erneute Eingabe Ihres 2FA Codes notwendig',
+			'en:Please provide your 2FA code to continue',
+		]).':';
+	?><br/>
 	<input type="hidden" name="returnurl" value="<?php echo s($returnurl); ?>"/>
 	<input type="hidden" name="action" value="login"/>
-	<input type="password" name="token" size="15" value="" placeholder="A2fa Code"/><br/>
+	<input type="password" name="token" size="15" value="" placeholder="2FA Code"/><br/>
 	<input type="submit" value="Login"/>
+
+	<br/><br/><br/>
+	<a href="?action=reset_a2fa"><?php
+		echo block_exa2fa_trans([
+			'de:2FA Code zurücksetzen',
+			'en:Reset 2FA Code',
+		]);
+	?></a>
 </form>
 <?php
 

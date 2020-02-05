@@ -24,6 +24,6 @@ else the a2fa users can't login.
 * Note: Users can activate a2fa by themselfs, the administrator can not do this step for the users
 * To use a2fa each user has to first install the authenticator App on their phone (Google Authenticator or FreeOTP or similar).
 * Then login to moodle and go to the profile page
-* Look for "A2fa Settings", click on "Enable A2fa" and follow the instructions on the page
-* After you have activated A2fa your profile Page should read "A2fa is active"
-* A2fa is now activated. The next time you login you also need to provide the correct code from your Phone Auth App
+* Look for "2FA Settings", click on "Enable 2FA" and follow the instructions on the page
+* After you have activated 2FA your profile Page should read "2FA is active"
+* 2FA is now activated. The next time you login you also need to provide the correct code from your Phone Auth App

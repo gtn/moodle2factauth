@@ -45,41 +45,28 @@ return [
 	],
 
 	'settings_a2fa_timeout_description' => [
-		'Timeout in Sekunden für Zwei-Faktoren Authentifizierung in den Exabis Blöcken',
-		'Two-factor-authentication timeout in seconds for Exabis Blocks',
-	],
-
-	'settings_a2fa_requirement' => [
-		'Zwei-Faktoren-Authentifizierung im Lernentwicklungsbericht aktivieren',
-		'Use two-factor-authentication',
-	],
-	'settings_a2fa_requirement_description' => [
-		'Das 2-Faktoren-Authentifizierungs-Modul exa2fa ist nicht installiert',
-		'Exa2fa Plugin is not installed',
+		'Timeout in Sekunden für 2FA in den Exabis Blöcken',
+		'2FA timeout in seconds for Exabis Blocks',
 	],
 	'settings_a2fa_requirement_def' => [
-		'Deaktiviert (Keine A2fa erforderlich)',
-		'Deactivated (no two-factor-authentication required)',
-	],
-	'settings_a2fa_requirement_user_a2fa' => [
-		'A2fa für Benutzer erforderlich (z.B. Lehrernetz)',
-		'A2fa required for user',
+		'2FA deaktiviert (kann vom Benutzer selbst aktiviert werden)',
+		'2FA deactivated (no two-factor-authentication required)',
 	],
 	'settings_a2fa_requirement_a2fa_timeout' => [
-		'A2fa für Benutzer erforderlich und erneute A2fa für Block notwendig (z.B. päd. Netz)',
-		'A2fa required for user - timeout',
+		'2FA für Block zwingend aktivieren',
+		'2FA for this block required',
 	],
 
 	'settings_a2fa_required_for_block_exastud' => [
-		'A2fa im Lernentwicklungsbericht erforderlich',
-		'Require A2fa in Exabis Student Review',
+		'Lernentwicklungsbericht',
+		'Require 2FA in Exabis Student Review',
 	],
 	'settings_a2fa_required_for_block_exacomp' => [
-		'A2fa im Kompetenzraster erforderlich',
-		'Require A2fa in Exabis Copetence Grid',
+		'Kompetenzraster',
+		'Require 2FA in Exabis Copetence Grid',
 	],
 	'settings_a2fa_required_for_block_exaport' => [
-		'A2fa im ePortfolio erforderlich',
-		'Require A2fa in Exabis ePortfolio',
+		'ePortfolio',
+		'Require 2FA in Exabis ePortfolio',
 	],
 ];

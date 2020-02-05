@@ -36,9 +36,19 @@ if (!$userid || $userid == $USER->id) {
 }
 
 if ($action == 'deactivate') {
+	// check 2fa code before deactivating
+	\block_exa2fa\api::check_user_a2fa_requirement('deactivate_a2fa');
+
 	\block_exa2fa_user_setting::get($USER->id)->deactivate();
 	redirect($returnurl);
-} elseif ($action == 'activate' || $action == 'generate') {
+} elseif ($action == 'activate') {
+
+	if (\block_exa2fa_user_setting::get($USER->id)->is_a2fa_configured()) {
+		// already configured -> return
+		// this also prevents from somebody calling activate although 2fa is already active!
+		redirect($returnurl);
+		exit;
+	}
 
 	$secret = optional_param('secret', '', PARAM_ALPHANUM);
 	$token = optional_param('token', '', PARAM_ALPHANUM);
@@ -48,6 +58,7 @@ if ($action == 'deactivate') {
 		if (\block_exa2fa_user_setting::get($USER->id)->activate($secret, $token, $error)) {
 			// ok
 			redirect($returnurl);
+			exit;
 		}
 	}
 
@@ -68,29 +79,52 @@ if ($action == 'deactivate') {
 	echo $OUTPUT->header();
 
 	echo '<div style="text-align: center;">'.block_exa2fa_trans([
-			'de:Dein neuer A2fa Code lautet: {$a}',
-			'en:Your new A2fa Code: {$a}'], $secret).
+			'de:Dein neuer 2FA Code lautet: {$a}',
+			'en:Your new 2FA Code: {$a}'], $secret).
 		'<br />';
 
-	echo '<h2>1. '.block_exa2fa_trans([
+	echo '<h3 style="margin-top: 20px; font-weight: bold;">1. '.block_exa2fa_trans([
 			'de:Bitte scannen Sie den QR Code mit einer Auth App (z.B. FreeOTP) ein.',
 			'en:Please scan the QR with your Auth App (eg. FreeOTP)']).
-		'</h2>';
+		'</h3>';
 
 	echo $img;
 
-	echo '<h2>2. '.block_exa2fa_trans([
+	?>
+	<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<input type="hidden" name="secret" value="<?php echo $secret; ?>"/>
+		<?php
+
+	echo '<h3 style="margin-top: 20px; font-weight: bold;">2. '.block_exa2fa_trans([
+			'de:Einstellungen',
+			'en:Settings'
+		]).
+		'</h3>';
+
+	echo '<div><label><input type="checkbox" name="active_for[]" value="login" checked="checked"/> '.block_exa2fa_trans([
+			'de:Login mit 2FA schützen',
+			'en:Use 2FA for Login'
+		]).
+		'</label></div>';
+
+	if (class_exists('\block_exacomp\api') && !get_config('exa2fa', 'a2fa_required_for_block_exacomp')) {
+		echo '<div><label><input type="checkbox" name="active_for[]" value="block_exacomp"/> '.block_exa2fa_trans([
+				'de:Kompetenzraster mit 2FA schützen',
+				'en:Use 2FA for Competence Grid'
+			]).
+			'</divlabel></div>';
+	}
+
+	echo '<h3 style="margin-top: 20px; font-weight: bold;">3. '.block_exa2fa_trans([
 			'de:Geben Sie zur Kontrolle den in der Auth App generierten 6-stelligen Code ein.',
-			'en:To activate your A2fa Login insert the 6-digit Code from your App']).
-		'</h2>';
+			'en:To activate your 2FA Login insert the 6-digit Code from your App']).
+		'</h3>';
 
 	if ($error) {
 		echo '<div class="alert alert-error">'.$error.'</div>';
 	}
 
 	?>
-	<form method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-		<input type="hidden" name="secret" value="<?php echo $secret; ?>"/>
 		<input type="text" name="token" size="15" value=""/>
 		<input type="submit" value="<?php echo block_exa2fa_trans(['de:Bestätigen', 'en:Check Code']); ?>"/>
 	</form>

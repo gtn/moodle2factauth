@@ -27,10 +27,8 @@ if ($ADMIN->fulltree) {
 
 	$a2fa_requirement = [
 		'' => block_exa2fa_get_string('settings_a2fa_requirement_def'),
-		'user_a2fa' => block_exa2fa_get_string('settings_a2fa_requirement_user_a2fa'),
 		'a2fa_timeout' => block_exa2fa_get_string('settings_a2fa_requirement_a2fa_timeout'),
 	];
-	$description = '<span style="color: red">'.block_exa2fa_get_string('settings_a2fa_requirement_description').'</span>';
 
 	if (class_exists('\block_exastud\api')) {
 		$settings->add(new admin_setting_configselect('exa2fa/a2fa_required_for_block_exastud', block_exa2fa_get_string('settings_a2fa_required_for_block_exastud'), '', '', $a2fa_requirement));

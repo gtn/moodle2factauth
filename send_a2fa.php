@@ -31,79 +31,13 @@ if ($user = $DB->get_record('user', array('username'=>$username, 'mnethostid'=>$
 	block_exa2fa_send_password_change_confirmation_email($user, $resetrecord);
 }
 
-/**
- * copied from login/lib.php
- * @param $user
- * @param $resetrecord
- * @return bool
- * @throws coding_exception
- * @throws moodle_exception
- */
-function block_exa2fa_send_password_change_confirmation_email($user, $resetrecord) {
-    global $CFG;
-
-    $site = get_site();
-    $supportuser = core_user::get_support_user();
-    $pwresetmins = isset($CFG->pwresettime) ? floor($CFG->pwresettime / MINSECS) : 30;
-
-    $data = new stdClass();
-    $data->firstname = $user->firstname;
-    $data->lastname  = $user->lastname;
-    $data->username  = $user->username;
-    $data->sitename  = format_string($site->fullname);
-    $data->link      = $CFG->httpswwwroot .'/blocks/exa2fa/reset_a2fa.php?token='. $resetrecord->token;
-    $data->admin     = generate_email_signoff();
-    $data->resetminutes = $pwresetmins;
-
-    $message = block_exa2fa_trans([
-    	'de:Guten Tag {$a->firstname},
-
-jemand (wahrscheinlich Sie) hat bei \'{$a->sitename}\' das Zurücksetzen des A2fa Codes für das Nutzerkonto \'{$a->username}\' angefordert.
-
-Um diese Anforderung zu bestätigen und den A2fa Code zu deaktivieren, gehen Sie bitte auf folgende Webseite:
-
-{$a->link}
-
-Hinweis:
-Dieser Link wird {$a->resetminutes} Minuten nach der Anforderung ungültig. Meistens erscheint die Webadresse als blauer Link, auf den Sie einfach klicken können. Falls dies nicht funktioniert, kopieren Sie die Webadresse vollständig in die Adresszeile Ihres Browsers. Falls Sie das Zurücksetzen nicht selber ausgelöst haben, hat vermutlich jemand anders Ihren Anmeldenamen oder Ihrer E-Mail-Adresse eingegeben. Dies ist kein Grund zur Beunruhigung. Ignorieren Sie die Nachricht dann bitte.
-
-Bei Problemen wenden Sie sich bitte an die Administrator/innen der Website.
-
-Viel Erfolg!
-
-{$a->admin}',
-		'en:Dear {$a->firstname},
-
-you have requested to reset your A2fa Code of \'{$a->username}\' on \'{$a->sitename}\'.
-
-Please click the link below to disable your A2fa Code:
-
-{$a->link}
-
-Note:
-The Link is only active for {$a->resetminutes} minutes.
-
-If you experience any Problems, please contact your Moodle Support.
-
-Sincerely,
-{$a->admin}'
-	], $data);
-    $subject = block_exa2fa_trans([
-    	'de:{$a}: A2fa Code zurücksetzen',
-		'en:{$a}: Reset A2fa Code'
-	], format_string($site->fullname));
-
-    // Directly email rather than using the messaging system to ensure its not routed to a popup or jabber.
-    return email_to_user($user, $supportuser, $subject, $message);
-}
-
 // always show ok message
 
 echo $OUTPUT->header();
 
 $msg = block_exa2fa_trans([
-	'de:Die Anleitung zum Zurücksetzen des A2fa Codes wurde dir per E-Mail gesendet.',
-	'en:We have sent you an email with the instructions on how to reset your A2fa Code.'
+	'de:Die Anleitung zum Zurücksetzen des 2FA Codes wurde dir per E-Mail gesendet.',
+	'en:We have sent you an email with the instructions on how to reset your 2FA Code.'
 ]);
 notice('<div style="text-align: center; padding: 30px;">'.$msg.'</div>', $CFG->wwwroot.'/index.php');
 

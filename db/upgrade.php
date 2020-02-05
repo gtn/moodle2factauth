@@ -41,5 +41,23 @@ function xmldb_block_exa2fa_upgrade($oldversion) {
         upgrade_block_savepoint(true, 2020012700, 'exa2fa');
     }
 
+    if ($oldversion < 2020020401) {
+
+        // Define field active_for to be added to block_exa2fauser.
+        $table = new xmldb_table('block_exa2fauser');
+        $field = new xmldb_field('active_for', XMLDB_TYPE_TEXT, null, null, null, null, null, 'lasttokens');
+
+        // Conditionally launch add field active_for.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // save a2fa to login when ugrading, this was the default behavior in prior versions
+		$DB->execute("UPDATE {block_exa2fauser} SET active_for='login' WHERE a2faactive=1 AND (active_for IS NULL OR active_for='')");
+
+        // Exa2fa savepoint reached.
+        upgrade_block_savepoint(true, 2020020401, 'exa2fa');
+    }
+
 	return $return_result;
 }
