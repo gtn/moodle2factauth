@@ -25,15 +25,18 @@ require_once __DIR__.'/inc.php';
 if ($ADMIN->fulltree) {
 	$settings->add(new admin_setting_configtext('exa2fa/a2fa_timeout_for_blocks', block_exa2fa_get_string('settings_a2fa_timeout'), block_exa2fa_get_string('settings_a2fa_timeout_description'), 10*60));
 
-	$a2fa_requirement = [
-		'' => block_exa2fa_get_string('settings_a2fa_requirement_def'),
-		'a2fa_timeout' => block_exa2fa_get_string('settings_a2fa_requirement_a2fa_timeout'),
-	];
-
 	if (class_exists('\block_exastud\api')) {
+		$a2fa_requirement = [
+			'' => block_exa2fa_get_string('settings_a2fa_requirement_disabled'),
+			'a2fa_timeout' => block_exa2fa_get_string('settings_a2fa_requirement_a2fa_timeout'),
+		];
 		$settings->add(new admin_setting_configselect('exa2fa/a2fa_required_for_block_exastud', block_exa2fa_get_string('settings_a2fa_required_for_block_exastud'), '', '', $a2fa_requirement));
 	}
 	if (class_exists('\block_exacomp\api')) {
+		$a2fa_requirement = [
+			'' => block_exa2fa_get_string('settings_a2fa_requirement_disabled_user_can_activate'),
+			'a2fa_timeout' => block_exa2fa_get_string('settings_a2fa_requirement_a2fa_timeout'),
+		];
 		$settings->add(new admin_setting_configselect('exa2fa/a2fa_required_for_block_exacomp', block_exa2fa_get_string('settings_a2fa_required_for_block_exacomp'), '', '', $a2fa_requirement));
 	}
 	//if (class_exists('\block_exaport\api')) {

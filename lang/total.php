@@ -48,12 +48,16 @@ return [
 		'Timeout in Sekunden für 2FA in den Exabis Blöcken',
 		'2FA timeout in seconds for Exabis Blocks',
 	],
-	'settings_a2fa_requirement_def' => [
+	'settings_a2fa_requirement_disabled' => [
+		'2FA deaktiviert',
+		'2FA deactivated',
+	],
+	'settings_a2fa_requirement_disabled_user_can_activate' => [
 		'2FA deaktiviert (kann vom Benutzer selbst aktiviert werden)',
-		'2FA deactivated (no two-factor-authentication required)',
+		'2FA deactivated (user can actiate 2FA)',
 	],
 	'settings_a2fa_requirement_a2fa_timeout' => [
-		'2FA für Block zwingend aktivieren',
+		'2FA für Block zwingend aktiviert',
 		'2FA for this block required',
 	],
 
