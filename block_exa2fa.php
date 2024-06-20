@@ -23,7 +23,7 @@ require_once __DIR__.'/lib/lib.php';
 
 class block_exa2fa extends block_base {
 	function init() {
-		$this->title = \block_exa2fa\get_string('pluginname');
+		$this->title = block_exa2fa_get_string('pluginname');
 	}
 
 	function applicable_formats() {
@@ -36,14 +36,14 @@ class block_exa2fa extends block_base {
 
 	function get_content() {
 		global $USER;
-		
+
 		if (!$a2faSettings = \block_exa2fa_user_setting::get($USER)) {
 			return;
 		}
-		
+
 		$this->content = new stdClass;
 		$this->content->text  = $a2faSettings->getSettingOutput();
-		
+
 		return $this->content;
 	}
 }

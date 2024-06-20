@@ -761,19 +761,6 @@ namespace block_exa2fa {
 		class url extends common\url {
 		}
 	}
-
-	if (_export_function('get_string')) {
-		function get_string($identifier, $component = null, $a = null) {
-		}
-	}
-	if (_export_function('print_error')) {
-		function print_error($errorcode, $module = 'error', $link = '', $a = null, $debuginfo = null) {
-		}
-	}
-	if (_export_function('trans')) {
-		function trans() {
-		}
-	}
 }
 
 namespace {
@@ -787,7 +774,7 @@ namespace {
 		if (!function_exists($namespace.'_'.$function)) {
 			eval('
 			function '.$namespace.'_'.$function.'() {
-				return call_user_func_array(\'\\'.$namespace.'\\'.$function.'\', func_get_args());
+				return call_user_func_array(\'\\'.$namespace.'\\common\\'.$function.'\', func_get_args());
 			}
 		');
 		}
@@ -797,10 +784,6 @@ namespace {
 
 	if (_block_exa2fa_export_function('get_string')) {
 		function block_exa2fa_get_string($identifier, $component = null, $a = null) {
-		}
-	}
-	if (_block_exa2fa_export_function('print_error')) {
-		function block_exa2fa_print_error($errorcode, $module = 'error', $link = '', $a = null, $debuginfo = null) {
 		}
 	}
 	if (_block_exa2fa_export_function('trans')) {
